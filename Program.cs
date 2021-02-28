@@ -37,6 +37,7 @@ namespace KaeMiner
                         {
                             isFound = true;
                             Console.WriteLine("New block!");
+                            b = bNew;
                         }
                         Thread.Sleep(2000);
                     }
