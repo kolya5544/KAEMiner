@@ -10,7 +10,7 @@ namespace KaeMiner
 {
     class Program
     {
-        public static string URL = "http://localhost:7771";
+        public static string URL = "https://kae.nk.ax";
         static void Main(string[] args)
         {
             string addr = args[0];
