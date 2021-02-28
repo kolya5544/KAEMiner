@@ -21,6 +21,21 @@ namespace KaeMiner
             string addr = args[0];
             int THREAD_AMOUNT = int.Parse(args[1]);
 
+            new Thread(() =>
+            {
+                while (true)
+                {
+                    var bNew = JsonConvert.DeserializeObject<Block>(Get($"{URL}/currentblock"));
+                    if (bNew.id != b.id)
+                    {
+                        isFound = true;
+                        Console.WriteLine("New block!");
+                        b = bNew;
+                    }
+                    Thread.Sleep(2000);
+                }
+            }).Start();
+
             while (true)
             {
                 int THREADS_DONE = 0;
@@ -28,20 +43,7 @@ namespace KaeMiner
                 Console.WriteLine($"New block [{b.id}]. Difficulty: {b.difficulty}, reward: {FKAE(b.reward)}");
                 bool isFound = false;
 
-                new Thread(() =>
-                {
-                    while (true)
-                    {
-                        var bNew = JsonConvert.DeserializeObject<Block>(Get($"{URL}/currentblock"));
-                        if (bNew.id != b.id)
-                        {
-                            isFound = true;
-                            Console.WriteLine("New block!");
-                            b = bNew;
-                        }
-                        Thread.Sleep(2000);
-                    }
-                }).Start();
+                
 
                 for (int tID = 0; tID < THREAD_AMOUNT; tID++)
                 {
