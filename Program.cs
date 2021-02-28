@@ -21,6 +21,8 @@ namespace KaeMiner
             string addr = args[0];
             int THREAD_AMOUNT = int.Parse(args[1]);
 
+            Block b = JsonConvert.DeserializeObject<Block>(Get($"{URL}/currentblock"));
+            bool isFound = false;
             new Thread(() =>
             {
                 while (true)
@@ -39,9 +41,9 @@ namespace KaeMiner
             while (true)
             {
                 int THREADS_DONE = 0;
-                Block b = JsonConvert.DeserializeObject<Block>(Get($"{URL}/currentblock"));
+                
                 Console.WriteLine($"New block [{b.id}]. Difficulty: {b.difficulty}, reward: {FKAE(b.reward)}");
-                bool isFound = false;
+                
 
                 
 
