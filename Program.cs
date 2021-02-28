@@ -10,6 +10,11 @@ namespace KaeMiner
 {
     class Program
     {
+        public static string FKAE(long value)
+        {
+            return (double)value / 10000 + " KAE";
+        }
+
         public static string URL = "https://kae.nk.ax";
         static void Main(string[] args)
         {
@@ -20,8 +25,22 @@ namespace KaeMiner
             {
                 int THREADS_DONE = 0;
                 Block b = JsonConvert.DeserializeObject<Block>(Get($"{URL}/currentblock"));
-                Console.WriteLine($"New block [{b.id}]. Difficulty: {b.difficulty}, reward: {b.reward}");
+                Console.WriteLine($"New block [{b.id}]. Difficulty: {b.difficulty}, reward: {FKAE(b.reward)}");
                 bool isFound = false;
+
+                new Thread(() =>
+                {
+                    while (true)
+                    {
+                        var bNew = JsonConvert.DeserializeObject<Block>(Get($"{URL}/currentblock"));
+                        if (bNew.id != b.id)
+                        {
+                            isFound = true;
+                            Console.WriteLine("New block!");
+                        }
+                        Thread.Sleep(2000);
+                    }
+                }).Start();
 
                 for (int tID = 0; tID < THREAD_AMOUNT; tID++)
                 {
@@ -32,19 +51,23 @@ namespace KaeMiner
 
                         long amountOfCombinations = (long)Math.Round(Math.Pow(Utils.base58.Length, Utils.base58entry(b.difficulty).Length));
 
+                        string hash = b.hash;
+                        string id = b.id.ToString();
+
                         //int searchFrom = i != 1 ? (int)Math.Round(Math.Pow(Az09Alphabet.Length, i-1)) : 0;
                         int searchFrom = (int)(lID * (amountOfCombinations / THREAD_AMOUNT));
-                        int searchTo = (int)(searchFrom + (amountOfCombinations / THREAD_AMOUNT));
+                        int searchTo = (int)(searchFrom + (amountOfCombinations / THREAD_AMOUNT) + 1);
                         for (int o = searchFrom; o < searchTo; o++)
                         {
-                            if (isFound) break;
+                            if (isFound) return;
                             string currPass = Utils.base58entry(o);
 
-                            if (Utils.sha256(currPass + "_" + b.id) == b.hash)
+                            if (Utils.sha256(currPass + "_" + id) == hash)
                             {
                                 Console.WriteLine($"FOUND {currPass + "_" + b.id}");
                                 isFound = true;
                                 Get($"{URL}/submitblock/{currPass + "_" + b.id}/{addr}");
+                                break;
                             }
                         }
                         THREADS_DONE++;
@@ -54,7 +77,8 @@ namespace KaeMiner
 
                 while (true)
                 {
-                    if (THREADS_DONE == THREAD_AMOUNT)
+                    if (THREADS_DONE == THREAD_AMOUNT ||
+                        isFound)
                     {
                         break;
                     }
